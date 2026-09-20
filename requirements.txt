@@ -1,0 +1,6 @@
+numpy
+scipy
+matplotlib
+sgp4
+requests
+pytest
