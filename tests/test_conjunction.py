@@ -141,3 +141,24 @@ def test_probability_increases_as_covariance_grows_from_tight_to_moderate():
         cov = np.diag([scale**2, (scale * 0.4)**2])
         pcs.append(ca.probability_of_collision(miss, cov, hbr))
     assert all(pcs[k] < pcs[k + 1] for k in range(len(pcs) - 1))
+
+
+
+
+def test_larger_timing_offset_gives_larger_miss_distance():
+    """
+    The crossing-orbit scenario is built by timing two satellites to reach
+    the same point at nearly the same moment. A larger timing_offset means
+    a bigger gap between their arrival times, which should produce a
+    bigger miss distance at closest approach.
+    """
+    misses = []
+    for offset in [0.001, 0.01, 0.05]:
+        r0_a, v0_a, r0_b, v0_b = make_crossing_pair(timing_offset=offset)
+        sol_a = propagate(r0_a, v0_a, (0.0, 3500.0))
+        sol_b = propagate(r0_b, v0_b, (0.0, 3500.0))
+        windows, _, _ = ca.coarse_screen(sol_a, sol_b, 2500.0, 3500.0, dt=2.0, threshold_km=10.0)
+        _, miss = ca.refine_tca(sol_a, sol_b, *windows[0])
+        misses.append(miss)
+
+    assert misses[0] < misses[1] < misses[2]
